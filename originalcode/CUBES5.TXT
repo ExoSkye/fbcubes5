@@ -1,0 +1,152 @@
+CUBES5 created by Ken Silverman (http://advsys.net/ken)
+------------------------------------------------------------------------------
+Introduction:
+
+   CUBES5 was a side project I did during the development of Build. I started
+working on the original cube engine in 1994, during a time when Apogee was
+pressuring me to make a next generation engine (comparable with Quake 1). In
+1995, I made many enhancements which you see in this version. I was
+researching several things as I was developing this:
+
+   * rendering arbitrary polygons quickly (selecting how to interpolate)
+   * front-to-back occlusion (hidden surface removal better than a z-buffer)
+
+   CUBES5 renders using lines of constant Z (in other words, diagonal lines)
+I used a neat trick to remove a lot of the jagged edges that are normally seen
+with diagonal line rendering. CUBES was also my first engine to use portals.
+Also, it was the first time I had reliable collision detection in a 6D engine.
+
+   CUBES5 was originally written for Watcom 10.5/10.6/11.0. I'm not exactly
+sure which version I was using at the time but it doesn't matter. Just before
+releasing the source code, (in 2005), I fixed things to compile cleanly with
+Open Watcom 1.3. (I added function prototypes and fixed up the makefile.) You
+can download Open Watcom 1.3 freely at: http://openwatcom.org
+To compile, enter a command prompt, set up the Watcom environment, and simply
+type "wmake" in the proper directory.
+
+-Ken S.
+------------------------------------------------------------------------------
+Command line:
+
+   >cubes5 [board name(.cub)]
+
+   (board.cub is the default board)
+
+------------------------------------------------------------------------------
+Movement controls:
+
+       ESC: quit
+Arrow keys: forward, backward, turn left, turn right
+   Rt.Ctrl: strafe
+ PGUP/PGDN: look up/down
+       ,/.: twist screen
+       KP0: hold to return view to horizon angle
+  Ctrl+KP0: hold to look straight down
+         R: quantize position to nearest 1/8 cube (for saving start position)
+
+Editing controls:
+
+    Insert: Insert cube
+    Delete: Delete cube
+       Tab: Store texture index of cube under cursor to memory
+   L.Enter: Write texture index of cube under cursor from memory
+ V/LMouseB: Select new texture from list
+     Alt-C: Change all textures under cursor to texture in memory
+         L: re-load board
+     ALT-S: save board (overwrites with same name of loaded board)
+
+Rendering controls:
+
+  KP Enter: Toggle rendering method:
+               0:Constant z (default)
+               1:hlines (no depth shading)
+               2:wires
+` & BCKSPC: Hold down `, then press backspace repeatedly to watch rendering
+L. 1,2,3,4: Hold to force global Mip-map level
+         D: Hold to show direction of rendering by shading lines
+RAlt/RShft: Hold to force different methods of rendering for Constant z
+
+ScrollLock: Panic quit (Try it if CUBES5.EXE locks up)
+
+------------------------------------------------------------------------------
+File description:
+
+CUBES5.EXE: Game editor executable
+
+BOARD.CUB: Default world map file (16 x 16 x 16 x 6_faces)
+NEWBOARD.CUB: Another sample world map file
+
+TILES000.ART: Art tiles (Build Engine format)
+PALETTE.DAT: VGA palette information / shade tables (Build Engine format)
+TABLES.DAT: Pre-calculated math tables (Build Engine format)
+SETUP.DAT: Setup data (mostly compatible with Build Engine format)
+
+MAKEFILE: Makefile for Open Watcom 1.3
+CUBES5.C: Main engine code
+C.ASM: Assembler code called by CUBES5.C (NOTE: optimized for 486!)
+CACHE2D.C: A unique 2D cache system (for special assembly optimations)
+           and a GRP file loader.
+PRAGMAS.H: Assembly code utility functions
+
+README.TXT: This help file
+
+------------------------------------------------------------------------------
+CUBES5 license: (in case anybody actually wants to use this for something)
+
+[1] Any derivative works based on CUBES5 may be distributed freely through the
+    internet. If you wish to use this for a commercial application, please
+    consult with me first to acquire a license.
+
+[2] You must give me proper credit. This line of text is sufficient:
+
+       CUBES5 by Ken Silverman (http://advsys.net/ken)
+
+    Make sure it is clearly visible somewhere in your archive.
+
+[3] If you wish to release modified source code to your game, please add the
+    following line to each source file changed:
+
+   // This file has been modified from Ken Silverman's original release
+
+------------------------------------------------------------------------------
+Release history:
+
+02/07/2000: Original release of CUBES5 (just EXE and game data)
+10/17/2005: Released CUBES5 source code. Here are some original filedates of
+               source code files before I prepared them for release:
+              10/30/1995  01:31 PM    3,504 C.ASM
+              07/10/1995  11:51 AM   13,460 CACHE2D.C
+              10/30/1995  12:53 PM  100,929 CUBES5.C
+
+------------------------------------------------------------------------------
+Known annoyances:
+
+   * You can use BSETUP.EXE (the build editor setup program) to select
+      different default keys and video modes. You may have a problem with
+      selecting the video modes because they are misaligned, for example if
+      you select 360*200 mode, it might actually be 640*480 mode in cubes5.
+
+   * This program is generally pretty stable. However, if you go nuts and
+      hold down the delete key, you're asking for trouble. If the board gets
+      too complex, you will likely cause a crash. (the board map is 16*16*16)
+
+   * There are no options for shading and palette.
+
+------------------------------------------------------------------------------
+Contact info:
+
+If you do anything cool with CUBES5, I would love to hear about it! I prefer
+that you contact me in either of these ways:
+
+ 1. Write about it on my personal forum ("advsys.net/ken" topic) at:
+    http://jonof.edgenetwork.org
+
+ 2. You can write me a private E-mail (address can be found at the bottom of
+    my main page). Please use this for license requests.
+
+If you have any questions or feature requests about other things in CUBES5, it
+doesn't hurt to ask, although keep in mind that I haven't really worked with
+the code since 1995!
+
+-Ken S. (official website: http://advsys.net/ken)
+------------------------------------------------------------------------------

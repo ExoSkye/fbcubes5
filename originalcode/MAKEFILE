@@ -1,0 +1,4 @@
+CUBES5.exe: CUBES5.obj CACHE2D.obj c.obj; wlink f CUBES5 f CACHE2D f c system dos4g
+CACHE2D.obj: CACHE2D.C; wcc386 CACHE2D /4r /s /or
+CUBES5.obj: CUBES5.C; wcc386 CUBES5 /4r /s /or /fp5 /fpi87 /on /op
+c.obj: C.ASM; wasm C.ASM
