@@ -1,16 +1,27 @@
 #include <packed.h>
 #include <defines.h>
+#include <stdbool.h>
+#include <colour.h>
 
 typedef PACKED_STRUCT(
-    colour_t {
-        u8 r;
-        u8 g;
-        u8 b;
+    fb_info_t {
+        u16 x;
+        u16 y;
+        u8 bpp;
     }
-) colour_t;
+) fb_info_t;
 
-extern char* fb_path;
+extern colour_t white;
+extern colour_t black;
 
-extern void clearscreen();
+extern bool fb_init();
 
-extern void drawpixel(int x, int y, colour_t colour);
+extern fb_info_t fb_get_info();
+
+extern void fb_clearscreen(colour_t colour);
+
+extern void fb_drawpixel(int x, int y, colour_t colour);
+
+extern colour_t fb_make_colour(u8 r, u8 g, u8 b, u8 a);
+
+extern void fb_exit();
