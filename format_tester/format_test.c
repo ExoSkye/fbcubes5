@@ -28,6 +28,8 @@ int main(int argc, char** argv) {
                     break;
             }
         }
+        printf("-DFORMAT=%s ", argv[1]);
+        printf("\n");
         return 0;
     }
 
@@ -65,15 +67,21 @@ int main(int argc, char** argv) {
     bool alpha_used = false;
     int free_i = 0;
 
+    char format[5] = "    \0";
+
     for (int i = 0; i < 4; i++) {
         if (vinfo.red.offset == i * 8) {
             printf("-DR%i ", i);
+            format[i] = 'R';
         } else if (vinfo.green.offset == i * 8) {
             printf("-DG%i ", i);
+            format[i] = 'G';
         } else if (vinfo.blue.offset == i * 8) {
             printf("-DB%i ", i);
+            format[i] = 'B';
         } else if (vinfo.transp.offset == i * 8) {
             printf("-DA%i ", i);
+            format[i] = 'A';
             alpha_used = true;
         } else {
             free_i = i;
@@ -82,7 +90,10 @@ int main(int argc, char** argv) {
 
     if (!alpha_used) {
         printf("-DA%i ", free_i);
+        format[free_i] = 'A';
     }
+
+    printf("-DFORMAT=%s ", format);
 
     printf("\n");
 

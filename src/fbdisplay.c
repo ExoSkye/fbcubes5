@@ -22,6 +22,9 @@ bool fb_init() {
 #ifndef FB_NAME
 #define FB_NAME "fb0"
 #endif
+#ifndef FORMAT
+#define FORMAT
+#endif
     char* fb_path = "/dev/" xstr(FB_NAME) ;
 
     if(access(fb_path, W_OK) != 0) {
@@ -44,12 +47,18 @@ bool fb_init() {
         exit(3);
     }
 
+    printf("Using framebuffer provided by: %s\n"
+           "Resolution: %ix%i at %i bpp (%s)\n",
+           finfo.id,
+           vinfo.xres_virtual, vinfo.yres_virtual, vinfo.bits_per_pixel, xstr(FORMAT));
+
+
     fb_info.x = vinfo.xres_virtual;
     fb_info.y = vinfo.yres_virtual;
     fb_info.bpp = vinfo.bits_per_pixel;
 
     black = fb_make_colour(0, 0, 0, 255);
-    white = fb_make_colour(0, 0, 255, 255);
+    white = fb_make_colour(255, 255, 255, 255);
 
     fb = (char *)mmap(0, fb_info.x * fb_info.y * (fb_info.bpp / 8), PROT_READ | PROT_WRITE, MAP_SHARED, fb_file, 0);
 
@@ -78,7 +87,6 @@ void fb_clearscreen(colour_t colour) {
 }
 
 void fb_drawpixel(int x, int y, colour_t colour) {
-
     ((u32*)fb)[y * fb_info.x + x] = *(u32*)&colour;
 }
 

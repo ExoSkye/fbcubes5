@@ -14,8 +14,6 @@ int main(int argc, char** argv) {
 
     fb_info_t fb_info = fb_get_info();
 
-    printf("Using framebuffer of size %hi, %hi\n", fb_info.x, fb_info.y);
-
     struct timeval curTime;
     gettimeofday(&curTime, NULL);
     unsigned long start_micro = curTime.tv_sec*(u32)1000000+curTime.tv_usec;
