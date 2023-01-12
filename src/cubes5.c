@@ -6,7 +6,13 @@
 
 #include "fbdisplay.h"
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv, int env) {
+    if (getenv("FB") != NULL) {
+        char* fb = getenv("FB");
+    } else {
+        char* fb = "/dev/fb0";
+    }
+
     if (!fb_init()) {
         fb_exit();
         return -1;

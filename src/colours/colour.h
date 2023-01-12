@@ -1,5 +1,8 @@
 #include <packed.h>
 
+#ifndef IMPL
+typedef u32 colour_t;
+#else
 typedef PACKED_STRUCT(
         colour_t {
 #ifdef R0
@@ -51,3 +54,7 @@ typedef PACKED_STRUCT(
 #endif
         }
 ) colour_t;
+#endif
+
+extern colour_t* fb_make_colour(u8 r, u8 g, u8 b, u8 a);
+extern void fb_delete_colour(colour_t*);

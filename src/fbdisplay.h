@@ -11,17 +11,15 @@ typedef PACKED_STRUCT(
     }
 ) fb_info_t;
 
-extern colour_t white;
-extern colour_t black;
+extern colour_t* white;
+extern colour_t* black;
 
 extern bool fb_init();
 
 extern fb_info_t fb_get_info();
 
-extern void fb_clearscreen(colour_t colour);
+extern void fb_clearscreen(colour_t* colour);
 
-extern void fb_drawpixel(int x, int y, colour_t colour);
-
-extern colour_t fb_make_colour(u8 r, u8 g, u8 b, u8 a);
+extern void fb_drawpixel(int x, int y, colour_t* colour);
 
 extern void fb_exit();
