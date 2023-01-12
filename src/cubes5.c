@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     gettimeofday(&curTime, NULL);
     unsigned long start_micro = curTime.tv_sec*(u32)1000000+curTime.tv_usec;
 
-    for (int i = 0; i < 200000; i += 2) {
+    for (int i = 0; i < 20000; i += 2) {
         fb_clearscreen(white);
         fb_clearscreen(black);
     }

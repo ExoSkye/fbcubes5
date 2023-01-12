@@ -12,21 +12,22 @@ endif
 
 .NOSUFFIXES:
 
-.PHONY: all clean check_fb_name DEFAULT_TARGET
+.PHONY: all clean check_fb_name build_dir
 
 SRC := src/cubes5.c src/fbdisplay.c
 INCLUDES := src/fbdisplay.h src/defines.h
 INCLUDE_DIRS := -Icontrib
+CFLAGS := $(CFLAGS) -march=native -mtune=native
+TARGET ?= i586-linux-elf
 
 ifdef BUILD_DEBUG
-	CFLAGS := -g
+	CFLAGS := $(CFLAGS) -g
 else
-	CFLAGS := -O3 -flto
+	CFLAGS := $(CFLAGS) -O3 -flto
 endif
 
 ifdef BUILD_WITH_POLLY
-	BUILD_PENTIUM := 1
-	CFLAGS := $(CFLAGS) -target i586-linux-elf -fuse-ld=lld -g -mllvm -polly
+	CFLAGS := $(CFLAGS) -target $(TARGET) -fuse-ld=lld -g -mllvm -polly
 	CC := clang
 endif
 
@@ -34,7 +35,7 @@ ifdef BUILD_PENTIUM
 	CFLAGS := $(CFLAGS) -march=pentium-mmx -mtune=pentium-mmx
 endif
 
-all: Makefile cubes5
+all: Makefile build/cubes5
 
 NO_FB_NAME =
 
@@ -45,13 +46,20 @@ endif
 check_fb_name:
 	$(if $(NO_FB_NAME),$(call ERROR_LOG,Please provide the framebuffer name))
 
-format_test_helper: check_fb_name format_tester/format_test.c
-	$(VERB) $(call INFO_LOG,Building format_test_helper)
-	$(VERB) $(CC) format_tester/format_test.c -o format_test_helper -DFB_NAME="$(FB_NAME)" $(CFLAGS)
+build_dir:
+	$(VERB) mkdir -p build
 
-cubes5: check_fb_name format_test_helper $(SRC) $(INCLUDES)
+build/format_test_helper: build_dir check_fb_name format_tester/format_test.c
+	$(VERB) $(call INFO_LOG,Building format_test_helper)
+	$(VERB) $(CC) format_tester/format_test.c -o build/format_test_helper -DFB_NAME="$(FB_NAME)" $(CFLAGS)
+
+build/cubes5: build_dir check_fb_name build/format_test_helper $(SRC) $(INCLUDES)
 	$(VERB) $(call INFO_LOG,Building cubes5)
-	$(VERB) $(CC) $(SRC) -o cubes5 $(INCLUDE_DIRS) -Isrc -DFB_NAME="$(FB_NAME)" $(shell ./format_test_helper $(FORMAT)) $(CFLAGS)
+
+	$(if $(findstring DR,$(shell build/format_test_helper $(FORMAT))),$(VERB) $(CC) $(SRC) -o build/cubes5 $(INCLUDE_DIRS) -Isrc -DFB_NAME="$(FB_NAME)" $(CFLAGS) $(shell build/format_test_helper $(FORMAT)), \
+	$(file > build/format_test_helper.log,$(shell build/format_test_helper $(FORMAT))) \
+	$(call ERROR_LOG,format_test_helper didnt return a valid format (see build/format_test_helper.log)))
 
 clean:
-	$(VERB) rm cubes5 format_test_helper 2> /dev/null
+	$(VERB) rm build/cubes5 build/format_test_helper 2> /dev/null
+	$(VERB) rmdir build 2> /dev/null
