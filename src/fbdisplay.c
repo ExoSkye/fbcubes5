@@ -88,8 +88,8 @@ bool fb_init(char* fb_name) {
 
     char* format = fb_make_format_str(vinfo);
 
-    char* colour_lib_path = (char*)malloc(24 * sizeof(char));
-    snprintf(colour_lib_path, 24, "./colours/fc5-colour-%s.so", format);
+    char* colour_lib_path = (char*)malloc(32 * sizeof(char));
+    snprintf(colour_lib_path, 32, "./colours/fc5-colour-%s.so", format);
 
     colour_lib = dlopen(colour_lib_path, RTLD_NOW);
 

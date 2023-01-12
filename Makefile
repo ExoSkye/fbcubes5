@@ -58,5 +58,5 @@ build/cubes5: build_dir $(COLOUR_LIBS) $(SRC) $(INCLUDES)
 	$(VERB) $(CC) $(SRC) -o build/cubes5 $(INCLUDE_DIRS) $(CFLAGS)
 
 clean:
-	$(VERB) rm build/cubes5 build/format_test_helper 2> /dev/null
+	$(VERB) rm build/cubes5 build/format_test_helper -rf build/colours 2> /dev/null
 	$(VERB) rmdir build 2> /dev/null
