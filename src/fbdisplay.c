@@ -7,25 +7,64 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/fb.h>
+#include <colour.h>
+#include <dlfcn.h>
 
 static char* fb = NULL;
 
 static fb_info_t fb_info;
 
-colour_t white;
-colour_t black;
+colour_t* white = NULL;
+colour_t* black = NULL;
 
-#define xstr(s) str(s)
-#define str(s) #s
+static void* colour_lib;
 
-bool fb_init() {
-#ifndef FB_NAME
-#define FB_NAME "fb0"
-#endif
-#ifndef FORMAT
-#define FORMAT
-#endif
-    char* fb_path = "/dev/" xstr(FB_NAME) ;
+char* fb_make_format_str(struct fb_var_screeninfo vinfo) {
+    char* format = (char*)malloc(5 * sizeof(char));
+    bool alpha_used = false;
+    int free_i;
+
+    for (int i = 0; i < 4; i++) {
+        if (vinfo.red.offset == i * 8) {
+            format[i] = 'R';
+        } else if (vinfo.green.offset == i * 8) {
+            format[i] = 'G';
+        } else if (vinfo.blue.offset == i * 8) {
+            format[i] = 'B';
+        } else if (vinfo.transp.offset == i * 8) {
+            format[i] = 'A';
+            alpha_used = true;
+        } else {
+            free_i = i;
+        }
+    }
+
+    if (!alpha_used) {
+        format[free_i] = 'A';
+    }
+
+    return format;
+}
+
+struct colour_vtable {
+    colour_t* (*fb_make_colour)(u8 r, u8 g, u8 b, u8 a);
+    void (*fb_delete_colour)(colour_t* colour_ptr);
+};
+
+static struct colour_vtable* imports;
+
+colour_t* fb_make_colour(u8 r, u8 g, u8 b, u8 a) {
+    return imports->fb_make_colour(r, g, b, a);
+}
+
+void fb_delete_colour(colour_t* colour) {
+    imports->fb_delete_colour(colour);
+}
+
+bool fb_init(char* fb_name) {
+    char* fb_path = (char*)malloc(sizeof(char) * 10);
+
+    snprintf(fb_path, 10, "/dev/%s", fb_name);
 
     if(access(fb_path, W_OK) != 0) {
         printf("ERROR: You don't have sufficient permissions to write to the framebuffer (file: %s), exiting...\n", fb_path);
@@ -47,10 +86,30 @@ bool fb_init() {
         exit(3);
     }
 
+    char* format = fb_make_format_str(vinfo);
+
+    char* colour_lib_path = (char*)malloc(24 * sizeof(char));
+    snprintf(colour_lib_path, 24, "./colours/fc5-colour-%s.so", format);
+
+    colour_lib = dlopen(colour_lib_path, RTLD_NOW);
+
+    if (colour_lib == NULL) {
+        printf("ERROR: Can't open colour library (path: %s)", colour_lib_path);
+        return false;
+    }
+
+    imports = dlsym(colour_lib, "exports");
+
+    if (imports == NULL) {
+        printf("ERROR: Can't get exported functions from the colour lib");
+        return false;
+    }
+
     printf("Using framebuffer provided by: %s\n"
            "Resolution: %ix%i at %i bpp (%s)\n",
            finfo.id,
-           vinfo.xres_virtual, vinfo.yres_virtual, vinfo.bits_per_pixel, xstr(FORMAT));
+           vinfo.xres_virtual, vinfo.yres_virtual, vinfo.bits_per_pixel, format
+    );
 
 
     fb_info.x = vinfo.xres_virtual;
@@ -68,6 +127,7 @@ bool fb_init() {
     }
 
     close(fb_file);
+    free(fb_path);
 
     fb_clearscreen(black);
 
@@ -78,7 +138,7 @@ fb_info_t fb_get_info() {
     return fb_info;
 }
 
-void fb_clearscreen(colour_t colour) {
+void fb_clearscreen(colour_t* colour) {
     for (u16 y = 0; y < fb_info.y; y++) {
         for (u16 x = 0; x < fb_info.x; x++) {
             fb_drawpixel(x, y, colour);
@@ -86,23 +146,24 @@ void fb_clearscreen(colour_t colour) {
     }
 }
 
-void fb_drawpixel(int x, int y, colour_t colour) {
-    ((u32*)fb)[y * fb_info.x + x] = *(u32*)&colour;
+void fb_drawpixel(int x, int y, const colour_t* colour) {
+    ((u32*)fb)[y * fb_info.x + x] = *colour;
 }
 
 void fb_exit() {
     if (fb != NULL) {
         munmap(fb, fb_info.x * fb_info.y * (fb_info.bpp / 8));
     }
-}
 
-colour_t fb_make_colour(u8 r, u8 g, u8 b, u8 a) {
-    colour_t colour_val = (colour_t) {
-            .r = r,
-            .g = g,
-            .b = b,
-            .a = a
-    };
+    if (white != NULL) {
+        fb_delete_colour(white);
+    }
 
-    return colour_val;
+    if (black != NULL) {
+        fb_delete_colour(black);
+    }
+
+    if (colour_lib != NULL) {
+        dlclose(colour_lib);
+    }
 }

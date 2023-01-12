@@ -15,10 +15,19 @@ endif
 .PHONY: all clean check_fb_name build_dir
 
 SRC := src/cubes5.c src/fbdisplay.c
-INCLUDES := src/fbdisplay.h src/defines.h
-INCLUDE_DIRS := -Icontrib
+COLOUR_LIB_SRCS := src/colours/colour.c
+INCLUDES := src/fbdisplay.h src/defines.h src/colours/colour.h
+INCLUDE_DIRS := -Icontrib -Isrc/colours -Isrc
 CFLAGS := $(CFLAGS) -march=native -mtune=native
 TARGET ?= i586-linux-elf
+
+ALL ?=
+POPULAR ?= YES
+ONLY ?=
+
+COLOUR_FORMATS_TO_BUILD := $(shell python3 tools/generate_formats.py $(if $(ALL),-a,$(if $(ONLY),-o $(ONLY),$(if $(POPULAR),-p))))
+
+COLOUR_LIBS := $(foreach element,$(COLOUR_FORMATS_TO_BUILD),build/colours/fc5-colour-$(element).so)
 
 ifdef BUILD_DEBUG
 	CFLAGS := $(CFLAGS) -g
@@ -37,28 +46,16 @@ endif
 
 all: Makefile build/cubes5
 
-NO_FB_NAME =
-
-ifndef FB_NAME
-	NO_FB_NAME = 1
-endif
-
-check_fb_name:
-	$(if $(NO_FB_NAME),$(call ERROR_LOG,Please provide the framebuffer name))
-
 build_dir:
-	$(VERB) mkdir -p build
+	$(VERB) mkdir -p build/colours
 
-build/format_test_helper: build_dir check_fb_name format_tester/format_test.c
-	$(VERB) $(call INFO_LOG,Building format_test_helper)
-	$(VERB) $(CC) format_tester/format_test.c -o build/format_test_helper -DFB_NAME="$(FB_NAME)" $(CFLAGS)
+$(COLOUR_LIBS): build/colours/%.so: build_dir $(COLOUR_LIB_SRCS)
+	$(VERB) $(call INFO_LOG,Building $@)
+	$(VERB) $(CC) -o $@ $(INCLUDE_DIRS) $(CFLAGS) $(shell python3 tools/generate_definitions.py $@) $(COLOUR_LIB_SRCS) --shared -fPIC
 
-build/cubes5: build_dir check_fb_name build/format_test_helper $(SRC) $(INCLUDES)
+build/cubes5: build_dir $(COLOUR_LIBS) $(SRC) $(INCLUDES)
 	$(VERB) $(call INFO_LOG,Building cubes5)
-
-	$(if $(findstring DR,$(shell build/format_test_helper $(FORMAT))),$(VERB) $(CC) $(SRC) -o build/cubes5 $(INCLUDE_DIRS) -Isrc -DFB_NAME="$(FB_NAME)" $(CFLAGS) $(shell build/format_test_helper $(FORMAT)), \
-	$(file > build/format_test_helper.log,$(shell build/format_test_helper $(FORMAT))) \
-	$(call ERROR_LOG,format_test_helper didnt return a valid format (see build/format_test_helper.log)))
+	$(VERB) $(CC) $(SRC) -o build/cubes5 $(INCLUDE_DIRS) $(CFLAGS)
 
 clean:
 	$(VERB) rm build/cubes5 build/format_test_helper 2> /dev/null

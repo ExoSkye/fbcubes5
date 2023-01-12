@@ -3,11 +3,19 @@
 #include <math.h>
 #include <time.h>
 #include <sys/time.h>
+#include <stdlib.h>
 
 #include "fbdisplay.h"
 
 int main(int argc, char** argv) {
-    if (!fb_init()) {
+    char* fb = NULL;
+    if (getenv("FB") != NULL) {
+        fb = getenv("FB");
+    } else {
+        fb = "/dev/fb0";
+    }
+
+    if (!fb_init(fb)) {
         fb_exit();
         return -1;
     }

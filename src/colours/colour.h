@@ -1,5 +1,9 @@
 #include <packed.h>
+#include <defines.h>
 
+#ifndef IMPL
+typedef u32 colour_t;
+#else
 typedef PACKED_STRUCT(
         colour_t {
 #ifdef R0
@@ -51,3 +55,4 @@ typedef PACKED_STRUCT(
 #endif
         }
 ) colour_t;
+#endif
