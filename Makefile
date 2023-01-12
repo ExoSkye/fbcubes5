@@ -15,12 +15,19 @@ endif
 .PHONY: all clean check_fb_name build_dir
 
 SRC := src/cubes5.c src/fbdisplay.c
-COLOUR_LIB_SRCS := src/colour.c
+COLOUR_LIB_SRCS := src/colours/colour.c
 INCLUDES := src/fbdisplay.h src/defines.h src/colours/colour.h
 INCLUDE_DIRS := -Icontrib -Isrc/colours -Isrc
 CFLAGS := $(CFLAGS) -march=native -mtune=native
 TARGET ?= i586-linux-elf
 
+ALL ?=
+POPULAR ?= YES
+ONLY ?=
+
+COLOUR_FORMATS_TO_BUILD := $(shell python3 tools/generate_formats.py $(if $(ALL),-a,$(if $(ONLY),-o $(ONLY),$(if $(POPULAR),-p))))
+
+COLOUR_LIBS := $(foreach element,$(COLOUR_FORMATS_TO_BUILD),build/colours/fc5-colour-$(element).so)
 
 ifdef BUILD_DEBUG
 	CFLAGS := $(CFLAGS) -g
@@ -40,13 +47,13 @@ endif
 all: Makefile build/cubes5
 
 build_dir:
-	$(VERB) mkdir -p build
+	$(VERB) mkdir -p build/colours
 
-build/format_test_helper: build_dir 
-	$(VERB) $(call INFO_LOG,Building format_test_helper)
-	$(VERB) $(CC) $(SRC) -o build/format_test_helper
+$(COLOUR_LIBS): build/colours/%.so: build_dir $(COLOUR_LIB_SRCS)
+	$(VERB) $(call INFO_LOG,Building $@)
+	$(VERB) $(CC) -o $@ $(INCLUDE_DIRS) $(CFLAGS) $(shell python3 tools/generate_definitions.py $@) $(COLOUR_LIB_SRCS) --shared -fPIC
 
-build/cubes5: build_dir check_fb_name $(SRC) $(INCLUDES)
+build/cubes5: build_dir $(COLOUR_LIBS) $(SRC) $(INCLUDES)
 	$(VERB) $(call INFO_LOG,Building cubes5)
 	$(VERB) $(CC) $(SRC) -o build/cubes5 $(INCLUDE_DIRS) $(CFLAGS)
 

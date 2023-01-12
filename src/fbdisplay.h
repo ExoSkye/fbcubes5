@@ -14,12 +14,12 @@ typedef PACKED_STRUCT(
 extern colour_t* white;
 extern colour_t* black;
 
-extern bool fb_init();
+extern bool fb_init(char* fb_name);
 
 extern fb_info_t fb_get_info();
 
 extern void fb_clearscreen(colour_t* colour);
 
-extern void fb_drawpixel(int x, int y, colour_t* colour);
+extern void fb_drawpixel(int x, int y, const colour_t* colour);
 
 extern void fb_exit();
